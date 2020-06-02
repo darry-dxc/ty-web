@@ -1,0 +1,68 @@
+import request from '../utils/request'
+
+const commonUrl = '/entrystaff' // 公共地址
+
+/**
+ * 分页条件查询新运单
+ * @param { Object } params 参照接口文档
+ */
+function getNewByCriteria (params) {
+  return request.post(`${commonUrl}/arrange/new/getByCriteria`, params)
+}
+
+/**
+  * 根据驾驶员手机号码获取其资质信息
+  * @param {string | string[]} driverPhone 驾驶员手机号码
+*/
+function getDriverByPhone (driverPhone) {
+  return request.get(`${commonUrl}/qualification/driver/getByPhone`, {
+    params: {
+      driverPhone: driverPhone
+    }
+  })
+}
+
+/**
+ * 根据车头车牌号获取车头信息
+ * @param { String } plateNumber 车头车牌号
+ */
+function getHeadstockByPlateNumber (plateNumber) {
+  return request.get(`${commonUrl}/qualification/headstock/getByPlateNumber`, {
+    params: {
+      plateNumber: plateNumber
+    }
+  })
+}
+
+/**
+ * 信息录入员提交资质信息
+ * @param { Object } params 参照接口文档
+ */
+function newEntry (params) {
+  return request.post(`${commonUrl}/arrange/new/entry`, params)
+}
+
+/**
+ * 分页条件查询已完成运单
+ * @param { Object } params 参照接口文档
+ */
+function getEntryByCriteria (params) {
+  return request.post(`${commonUrl}/arrange/entry/getByCriteria`, params)
+}
+
+/**
+ * 分页条件查询已入厂运单
+ * @param { Object } params 参照接口文档
+ */
+function getEnterByCriteria (params) {
+  return request.post(`${commonUrl}/arrange/enter/getByCriteria`, params)
+}
+
+export default {
+  getNewByCriteria,
+  getDriverByPhone,
+  getHeadstockByPlateNumber,
+  newEntry,
+  getEntryByCriteria,
+  getEnterByCriteria
+}

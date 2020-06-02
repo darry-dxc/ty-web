@@ -1,0 +1,9 @@
+/**
+ * 接口参数配置
+ */
+const base = {
+  url: '',
+  port: '8000'
+}
+
+export default base

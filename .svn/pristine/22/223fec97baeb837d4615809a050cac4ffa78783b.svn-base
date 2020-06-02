@@ -1,0 +1,269 @@
+<!--  -->
+<template>
+  <div>
+    <a-table
+      :rowKey="record => record.driverId"
+      :columns="columns"
+      :dataSource="data"
+      :loading="loading"
+      :pagination="false"
+      @change="handleTableChange"
+      bordered
+    >
+      <template slot="name" slot-scope="text">
+        <a href="javascript:;">{{text}}</a>
+      </template>
+      <template slot="title">
+        <a-form
+          layout="inline"
+          :form="form"
+          ref="form"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="驾驶员姓名"
+          >
+            <a-input
+            v-decorator="[
+              'driverName'
+            ]"
+          />
+          </a-form-item>
+          <a-form-item
+            label="驾驶员手机号"
+          >
+            <a-input
+            v-decorator="[
+              'phone'
+            ]"
+          />
+          </a-form-item>
+          <a-form-item
+            label="驾驶证编号"
+          >
+            <a-input
+            v-decorator="[
+              'driverLicenceNumber'
+            ]"
+          />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+      <span slot="action" slot-scope="text, record">
+        <a href="javascript:;" @click="rowEdit(record)">编辑</a>
+      </span>
+      <template slot="footer">
+        <a-button type="primary" @click="newDriver">添加资质</a-button>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.current"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+    <action ref="action" @newDriverSuccess="handleSubmit" @updateDriverSuccess="handleSubmit"/>
+  </div>
+</template>
+
+<script>
+import action from './action/action'
+const columns = [{
+  title: '驾驶员姓名',
+  dataIndex: 'driverName',
+  scopedSlots: { customRender: 'name' }
+}, {
+  title: '手机号码1',
+  dataIndex: 'phone1'
+}, {
+  title: '手机号码2',
+  dataIndex: 'phone2'
+}, {
+  title: '驾驶证编号',
+  dataIndex: 'driverLicenceNumber'
+}, {
+  title: '驾驶证有效期止',
+  dataIndex: 'driverLicenceValidDate'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      columns,
+      form: this.$form.createForm(this),
+      data: [],
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        current: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  created () {
+    this.handleSubmit()
+  },
+
+  components: {
+    action
+  },
+
+  computed: {},
+
+  methods: {
+    /**
+     * 查询驾驶员资质
+     */
+    handleSubmit () {
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 表格分页变化
+     */
+    handleTableChange (pagination) {
+      const pager = { ...this.pagination }
+      pager.pageNum = pagination.current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 请求后台数据方法
+     * @param { Object } params 请求参数
+     */
+    fetch (params = {}) {
+      delete params.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+      this.loading = true
+      this.$api.qualification.getDriverByCriteria(params).then((res) => {
+        if (res.code === 200) {
+          const pagination = { ...this.pagination }
+          pagination.total = res.data.total
+          this.pagination = pagination
+          this.data = res.data.list
+        } else {
+          this.data = []
+          const pagination = { ...this.pagination }
+          pagination.total = 0
+          this.pagination = pagination
+        }
+        this.loading = false
+      })
+    },
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 编辑驾驶员资质
+     */
+    rowEdit (record) {
+      this.$refs.action.isEdit = true
+      this.$refs.action.visible = true
+      this.$refs.action.driverId = record.driverId
+      this.$refs.action.okText = '更新资质'
+      let {
+        driverName,
+        phone1,
+        phone2,
+        driverLicenceNumber,
+        driverLicenceValidDate,
+        driverLicenceAttachment,
+        dangerLicenceNumber,
+        dangerLicenceAttachment,
+        dangerLicenceValidDate
+      } = record
+      if(driverLicenceAttachment !== '') {
+        this.$refs.action.driverLicenceFileList = [{
+          uid: -1,
+          status: 'done',
+          name: driverLicenceAttachment
+        }]
+        this.$refs.action.driverLicenceAttachmentUrl = driverLicenceAttachment
+      } else {
+        this.$refs.action.driverLicenceFileList = []
+      }
+      if(dangerLicenceAttachment !== '') {
+        this.$refs.action.dangerLicenceFileList = [{
+          uid: -2,
+          status: 'done',
+          name: dangerLicenceAttachment
+        }]
+        this.$refs.action.dangerLicenceAttachmentUrl = dangerLicenceAttachment
+      } else {
+        this.$refs.action.dangerLicenceFileList = []
+      }
+      this.$nextTick(() => {
+        this.$refs.action.form.setFieldsValue({
+          driverName,
+          phone1,
+          phone2,
+          driverLicenceNumber,
+          driverLicenceValidDate: this.$moment(driverLicenceValidDate),
+          driverLicenceAttachment,
+          dangerLicenceNumber,
+          dangerLicenceAttachment,
+          dangerLicenceValidDate: this.$moment(driverLicenceValidDate)
+        })
+      })
+    },
+    /**
+     * 新增驾驶员资质
+     */
+    newDriver () {
+      this.$refs.action.isEdit = false
+      this.$refs.action.visible = true
+      this.$refs.action.okText = '创建资质'
+      this.$refs.action.dangerLicenceFileList = []
+      this.$refs.action.driverLicenceFileList = []
+      this.$nextTick(() => {
+        this.$refs.action.form.resetFields()
+      })
+    }
+  }
+}
+
+</script>
+<style scoped>
+</style>

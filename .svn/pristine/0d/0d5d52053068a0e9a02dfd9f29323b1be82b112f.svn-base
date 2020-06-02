@@ -1,0 +1,59 @@
+import request from '../utils/request'
+
+const commonUrl = '/systemAdmin/user/'
+/**
+ * 信息录入员信息查询
+ * @param {Object} params 参照接口文档
+ */
+function reporterAuthInfo (params) {
+  return request.post(`${commonUrl}staff/info`, params)
+}
+
+/**
+ * 管理员信息查询
+ * @param {Object} params 参照接口文档
+ */
+function adminAuthInfo (params) {
+  return request.post(`${commonUrl}manager/info`, params)
+}
+
+/**
+ * 门卫信息查询
+ * @param {Object} params 参照接口文档
+ */
+function guardAuthInfo (params) {
+  return request.post(`${commonUrl}doorkeeper/info`, params)
+}
+
+/**
+ * 启用停用管理员账户
+ * @param {Object} params 参照接口文档
+ */
+function isReporterUse (params) {
+  return request.post(`${commonUrl}staff/enable`, params)
+}
+
+/**
+ * 启用停用管理员账户
+ * @param {Object} params 参照接口文档
+ */
+function isAdminUse (params) {
+  return request.post(`${commonUrl}manager/enable`, params)
+}
+
+/**
+ * 启用停用管理员账户
+ * @param {Object} params 参照接口文档
+ */
+function isGuardUse (params) {
+  return request.post(`${commonUrl}doorkeeper/enable`, params)
+}
+
+export default {
+  reporterAuthInfo,
+  adminAuthInfo,
+  guardAuthInfo,
+  isReporterUse,
+  isAdminUse,
+  isGuardUse
+}

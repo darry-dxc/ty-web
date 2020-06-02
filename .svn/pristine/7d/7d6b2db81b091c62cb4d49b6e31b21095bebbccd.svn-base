@@ -1,0 +1,93 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+Vue.use(Router)
+
+export default new Router({
+  routes: [
+    {
+      path: '/',
+      redirect: '/login'
+    },
+    {
+      path: '/login',
+      name: '登录',
+      component: () => import('./views/login/login.vue')
+    },
+    {
+      path: '/register',
+      name: '注册',
+      component: () => import('./views/login/register.vue')
+    },
+    {
+      path: '/seniorAdmin',
+      name: '用户权限管理',
+      component: () => import('./views/seniorAdmin/index.vue')
+    },
+    {
+      path: '/dataBackup',
+      name: '数据备份',
+      component: () => import('./views/seniorAdmin/dataBackup/dataBackup.vue')
+    },
+    {
+      path: '/sysSetting',
+      name: '系统设置',
+      component: () => import('./views/seniorAdmin/sysSetting/sysSetting.vue')
+    },
+    {
+      path: '/adminReport',
+      name: '首页报表',
+      component: () => import('./views/admin/index.vue')
+    },
+    {
+      path: '/adminList',
+      name: '列表查看',
+      component: () => import('./views/admin/list/list.vue')
+    },
+    {
+      path: '/adminLogs',
+      name: '系统日志',
+      component: () => import('./views/admin/logs/logs.vue')
+    },
+    {
+      path: '/guard',
+      name: '列表查看',
+      component: () => import('./views/guard/index.vue')
+    },
+    {
+      path: '/transpotArrange',
+      name: '运输安排',
+      component: () => import('./views/transpotArrange/index.vue')
+    },
+    {
+      path: '/transpotArrange/action',
+      name: '详情页',
+      component: () => import('./views/transpotArrange/components/action.vue')
+    },
+    {
+      path: '/qualificateUpdate',
+      name: '资质修改',
+      component: () => import('./views/qualificateUpdate/index.vue'),
+      children: [
+        {
+          path: 'edit',
+          component: () => import('./views/qualificateUpdate/driver/action/action.vue')
+        }
+      ]
+    },
+    {
+      path: '/qualificateTrack',
+      name: '资质回溯',
+      component: () => import('./views/qualificateTrack/index.vue')
+    },
+    {
+      path: '/history',
+      name: '入厂记录',
+      component: () => import('./views/history/index.vue')
+    },
+    {
+      path: '/user',
+      name: '个人中心',
+      component: () => import('./views/user/index.vue')
+    }
+  ]
+})

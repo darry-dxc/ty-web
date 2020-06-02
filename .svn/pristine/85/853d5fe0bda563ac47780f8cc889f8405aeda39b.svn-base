@@ -1,0 +1,399 @@
+<!--  -->
+<template>
+  <div>
+    <a-table
+      :columns="columns"
+      :dataSource="data"
+      bordered
+      :loading="loading"
+      :pagination="false"
+      @change="handleTableChange"
+      :rowKey="record => record.escortId"
+    >
+      <template slot="name" slot-scope="text">
+        <span style="color:#1890ff">{{text}}</span>
+      </template>
+      <template slot="title">
+        <a-form
+          layout="inline"
+          :form="form"
+          id="actionForm"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="押运员姓名"
+          >
+            <a-input
+              v-decorator="[
+                'escortName'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="押运员手机号码"
+          >
+            <a-input
+              v-decorator="[
+                'escortPhone'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="押运证编号"
+          >
+            <a-input
+              v-decorator="[
+                'escortLicenceNumber'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+          <a-form-item>
+            <a-button @click="resetForm">重置</a-button>
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" @click="completeQualificate">完善资质</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+      <span slot="action" slot-scope="text, record">
+        <a href="javascript:;" @click="rowEdit(record)">{{aText}}</a>
+      </span>
+      <template slot="footer">
+        <a-button type="primary" @click="newEscort">添加资质</a-button>
+        &nbsp;
+        <a-tooltip placement="bottom" >
+          <template slot="title">
+              <span>押运员导入模板下载</span>
+          </template>
+            <a-button type="primary" style="margin-right: 8px" @click="downloadExcel"><a-icon type="copy" /></a-button>
+        </a-tooltip>
+        <a-upload
+          name="file"
+          :multiple="false"
+          :action="bulkUploadAction"
+          :headers="headers"
+          :fileList="fileList"
+          accept=".xls, .xlsx"
+          @change="bulkUpload"
+          @beforeUpload="beforeBulkUpload"
+        >
+          <a-button type="primary">
+            <a-icon type="file-excel" /> 批量导入
+          </a-button>
+          <span class="tip">请先下载模板，只能上传excel文件，且不超过10M</span>
+        </a-upload>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.current"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+    <action ref="action" @newEscortSuccess="handleSubmit" @updateEscortSuccess="handleSubmit" @completeEscortSuccess="completeQualificate"/>
+  </div>
+</template>
+
+<script>
+import action from './action/action'
+import { baseUrl} from '../../../utils/config.js'
+const columns = [{
+  title: '押运员姓名',
+  dataIndex: 'escortName',
+  scopedSlots: { customRender: 'name' }
+}, {
+  title: '手机号码',
+  dataIndex: 'escortPhone'
+}, {
+  title: '押运证编号',
+  dataIndex: 'escortLicenceNumber'
+}, {
+  title: '押运证有效期止',
+  dataIndex: 'escortLicenceValidDate'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      columns,
+      form: this.$form.createForm(this),
+      data: [],
+      headers: {},
+      bulkUploadAction: '',
+      fileList: [],
+      aText: '编辑',
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        current: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  components: {
+    action
+  },
+
+  created () {
+    this.headers['access-token'] = sessionStorage.getItem('token')
+    if(process.env.NODE_ENV === 'production') {
+      this.bulkUploadAction = baseUrl + 'entrystaff/qualification/import/escort'
+    } else {
+      this.bulkUploadAction = '/api/entrystaff/qualification/import/escort'
+    }
+    this.handleSubmit()
+  },
+
+  computed: {},
+
+  methods: {
+    /**
+     * 提交表单
+     */
+    handleSubmit (e) {
+      this.aText = '编辑'
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 表格数据变化
+     */
+    handleTableChange (pagination) {
+      const pager = { ...this.pagination }
+      pager.pageNum = pagination.current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 请求后台数据方法
+     * @param { Object } params 请求参数
+     */
+    fetch (params = {}) {
+      delete params.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+      this.loading = true
+      this.$api.qualification.getEscortByCriteria(params).then((res) => {
+        if (res.code === 200) {
+          const pagination = { ...this.pagination }
+          pagination.total = res.data.total
+          this.pagination = pagination
+          this.data = res.data.list
+        } else {
+          this.data = []
+          const pagination = { ...this.pagination }
+          pagination.total = 0
+          this.pagination = pagination
+        }
+        this.loading = false
+      })
+    },
+    /**
+     * 表格分页条数切换
+     */
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      if(this.aText==='完善'){
+          this.completeQualificate()
+        }else{
+          this.handleSubmit()
+        }
+    },
+    /**
+     * 当前页切换
+     */
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      if(this.aText==='完善'){
+          this.completeQualificate()
+        }else{
+          this.handleSubmit()
+        }
+    },
+    /**
+     * 编辑押运员资质
+     */
+    rowEdit (record) {
+      this.$refs.action.isEdit = true
+      this.$refs.action.visible = true
+      this.$refs.action.escortId = record.escortId
+      if(this.aText==='完善'){
+        this.$refs.action.isComplete = true
+        this.$refs.action.okText = '完善资质'
+      }else{
+        this.$refs.action.isComplete = false
+        this.$refs.action.okText = '更新资质'
+      }
+      let {
+        escortName,
+        escortPhone,
+        escortLicenceNumber,
+        escortLicenceValidDate,
+        escortLicenceAttachment
+      } = record
+      this.$refs.action.fileList = [{
+        uid: -1,
+        status: 'done',
+        name: escortLicenceAttachment
+      }]
+      this.$nextTick(() => {
+        this.$refs.action.form.setFieldsValue({
+          escortName,
+          escortPhone,
+          escortLicenceNumber,
+          escortLicenceValidDate: this.$moment(escortLicenceValidDate),
+          escortLicenceAttachment
+        })
+      })
+    },
+    /**
+     * 新增押运员资质
+     */
+    newEscort () {
+      this.$refs.action.isEdit = false
+      this.$refs.action.isComplete = false
+      this.$refs.action.visible = true
+      this.$refs.action.okText = '创建资质'
+      this.$refs.action.fileList = []
+      this.$nextTick(() => {
+        this.$refs.action.form.resetFields()
+      })
+    },
+    resetForm () {
+      this.form.resetFields()
+      this.handleSubmit()
+    },
+    completeQualificate () {
+      this.aText = '完善'
+      this.form.validateFields((err, values) => {
+        values = Object.assign(values, this.pagination)
+        delete values.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+        this.loading = true
+        this.$api.qualification.getEscortByCriteria2(values).then((res) => {
+          if (res.code === 200) {
+            const pagination = { ...this.pagination }
+            pagination.total = res.data.total
+            this.pagination = pagination
+            this.data = res.data.list
+          } else {
+            this.data = []
+            const pagination = { ...this.pagination }
+            pagination.total = 0
+            this.pagination = pagination
+          }
+          this.loading = false
+        })  
+      })
+    },
+    /**
+     * 上传文件之前的钩子
+     * @param { Object } file 上传的文件
+     */
+    beforeBulkUpload (file) {
+      // return false
+    },
+    bulkUpload (e) {
+      this.fileList = e.fileList
+      console.log(e)
+      if (e.file.response) {
+        if (e.file.error) {
+          this.$message.error('服务器异常')
+          return
+        }
+        if (e.file.response.code === 200) {
+          let data = e.file.response.data
+          if (data.length === 1) {
+            const modal = this.$modal.success({
+              title: '资历添加成功！',
+              content: (
+                  <div style="max-height: 360px; overflow: auto; padding: 16px 16px 16px 0">
+                {data.map((item) => {                   
+                  return <div class="alert">成功导入的资历数量：{item.info}</div>                                                            
+                  })}
+                </div>
+              ),
+              width: '480px'
+            })
+          } else {
+            const modal = this.$modal.error({
+                title: '以下资历未能添加成功：',
+                content: (
+                  <div style="max-height: 360px; overflow: auto; padding: 16px 16px 16px 0">
+                {data.map((item) => {
+                    if (item.info !== null) {
+                      if (item.state !== ''){
+                        return <div class="alert">资历：<span style="color: red">{item.info}</span>，错误原因：{item.state}</div>
+                      }else{
+                        return <div class="alert">成功导入的资历数量：{item.info}</div>
+                      }
+                    } else {
+                    }
+                  })}
+                </div>
+              ),
+              width: '480px'
+          })
+          }
+          if(this.aText==='完善'){
+            this.completeQualificate()
+          }else{
+            this.handleSubmit()
+          }
+          this.fileList = []
+        } else {
+          // 错误处理
+        }
+      }
+    },
+    downloadExcel() {
+      const data = [{
+        '姓名': '',
+        '手机号码': '',
+        '押运证编号（从业资格证件号）': '',
+        '押运证有效期止': ''
+      }]
+      const fields = this.$XLSX.utils.json_to_sheet(data)
+      const wb = this.$XLSX.utils.book_new()
+      this.$XLSX.utils.book_append_sheet(wb, fields, 'sheet1')
+      let name = '押运员导入模板.xlsx'
+      this.$XLSX.writeFile(wb, name)
+    }
+  }
+}
+
+</script>
+<style scoped>
+  .tip {
+        font-size: 10px;
+        color: red;
+        margin-left: 8px
+      }
+</style>

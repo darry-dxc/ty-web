@@ -1,0 +1,7 @@
+import request from '../utils/request'
+
+function login (params) {
+  return request.post('/loginRegister/login', params)
+}
+
+export default { login }

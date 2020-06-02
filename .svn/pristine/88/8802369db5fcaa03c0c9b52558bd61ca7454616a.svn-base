@@ -1,0 +1,52 @@
+<!--  -->
+<template>
+  <div>
+    <a-list
+      itemLayout="horizontal"
+      :dataSource="data"
+    >
+      <a-list-item slot="renderItem" slot-scope="item, index">
+        <a slot="actions">修改</a>
+        <a-list-item-meta>
+          <span slot="description">{{item.description+item.detail}}</span>
+          <a slot="title" href="https://vue.ant.design/">{{item.title}}</a>
+        </a-list-item-meta>
+      </a-list-item>
+    </a-list>
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      data:[
+        {
+          title: '账户密码',
+          description: '当前密码强度   ',
+          detail: '弱'
+        },
+        {
+          title: '密保手机',
+          description: '已绑定手机：',
+          detail: '135********'
+        },
+        {
+          title: '备用邮箱',
+          description: '已绑定邮箱：',
+          detail: 'cai***@foxmail.com'
+        }
+      ]
+    };
+  },
+
+  components: {},
+
+  computed: {},
+
+  methods: {}
+}
+
+</script>
+<style lang='scss' scoped>
+</style>

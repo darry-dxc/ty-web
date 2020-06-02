@@ -1,0 +1,27 @@
+import request from '../utils/request'
+
+/**
+ * 未入厂条件查询接口
+ * @param {Object} params 参照接口文档
+ */
+function noEnteredList (params) {
+  return request.post('/doorKeeperManager/noEnteredConditionSearch', params)
+}
+
+/**
+ * 已入厂条件查询接口
+ * @param {Object} params 参照接口文档
+ */
+function enteredList (params) {
+  return request.post('/doorKeeperManager/enteredConditionSearch', params)
+}
+
+/**
+ * 运输记录详情查询接口
+ * @param {Object} params 参照接口文档
+ */
+function getTransportDetail (params) {
+  return request.post('/doorKeeperManager/getTransportDetail', params)
+}
+
+export default { noEnteredList, enteredList, getTransportDetail }

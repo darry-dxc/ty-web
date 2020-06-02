@@ -1,0 +1,53 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+Vue.use(Router)
+
+export default new Router({
+  routes: [
+    {
+      path: '/',
+      name: 'transpotArrange',
+      redirect: '/transpotArrange'
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('./views/login/login.vue')
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('./views/login/register.vue')
+    },
+    {
+      path: '/transpotArrange',
+      name: 'transpotArrange',
+      component: () => import('./views/transpotArrange/index.vue')
+    },
+    {
+      path: '/qualificateUpdate',
+      name: 'qualificateUpdate',
+      component: () => import('./views/qualificateUpdate/index.vue')
+    },
+    {
+      path: '/history',
+      name: 'history',
+      component: () => import('./views/history/index.vue')
+    },
+    {
+      path: '/qualificateTrack',
+      name: 'qualificateTrack',
+      component: () => import('./views/qualificateTrack/index.vue')
+    },
+    {
+      path: '/user',
+      name: 'user',
+      component: () => import('./views/user/index.vue')
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: () => import('./views/account/index.vue')
+    }
+  ]
+})

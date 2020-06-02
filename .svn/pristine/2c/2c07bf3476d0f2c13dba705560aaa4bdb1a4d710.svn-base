@@ -1,0 +1,95 @@
+import axios from 'axios'
+import { statusCode } from './config'
+import store from '../store'
+import router from '../router'
+import { message } from 'ant-design-vue'
+
+/**
+ * 跳转至登录页
+ */
+const reLogin = () => {
+  router.replace({
+    path: '/login',
+    query: {
+      redirect: router.currentRoute.fullPath
+    }
+  })
+}
+
+/**
+ * 错误处理
+ * @param { number } status 状态码
+ * @param { string } other 其他
+ */
+const errorHandle = (status, message) => {
+  switch (status) {
+    case statusCode.tokenError:
+      message.error(message)
+      reLogin()
+      break
+    case statusCode.tokenExpire:
+      message.error(message)
+      reLogin()
+      break
+    case statusCode.parameterInvalid:
+      message.error(message)
+      break
+    case statusCode.internalServerError:
+      message.error('服务器异常!')
+      break
+    default:
+      message.error(message)
+  }
+}
+
+/**
+ * 创建axios实例
+ * 设置请求超时 { timeout }
+ */
+const service = axios.create({
+  timeout: 3000,
+  baseURL: '/api'
+})
+service.defaults.headers.common['access-token'] = store.state.token
+service.defaults.headers.post['Content-Type'] = 'application/json'
+/**
+ * 请求拦截器
+ * @param { object } config 请求参数
+ */
+service.interceptors.request.use((config) => {
+  config.headers['access-token'] = sessionStorage.getItem('token')
+  return config
+}, function (error) {
+  return Promise.reject(error)
+})
+
+/**
+ * 响应拦截器
+ * @param { object } response 响应参数
+ */
+service.interceptors.response.use(response => {
+  if (response.status === statusCode.responseSuccess) {
+    return response.data
+  } else {
+    return response.data
+  }
+}, error => {
+  if (error) {
+    if (error.response) {
+      let httpError = {
+        hasError: true,
+        status: error.response.status,
+        statusText: error.response.statusText
+      }
+      store.commit('on_http_error', httpError)
+      errorHandle(httpError.status, httpError.statusText)
+    } else {
+      message.error('请求超时！请重试', 3)
+    }
+    return Promise.reject(error)
+  } else {
+    message.error('网络异常')
+  }
+})
+
+export default service

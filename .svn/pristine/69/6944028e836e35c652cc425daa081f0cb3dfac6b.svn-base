@@ -1,0 +1,243 @@
+<!--  -->
+<template>
+  <div>
+    <a-table
+      :rowKey="record => record.trailerId"
+      :columns="columns"
+      :dataSource="data"
+      :pagination="false"
+      @change="handleTableChange"
+      bordered>
+      <template slot="name" slot-scope="text">
+        <a href="javascript:;">{{text}}</a>
+      </template>
+      <template slot="title" slot-scope="currentPageData">
+        <a-form
+          layout="inline"
+          :form="form"
+          ref="form"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="车牌号"
+          >
+            <a-input
+              v-decorator="[
+              'trailerPlateNumber'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="经营范围"
+          >
+            <a-input
+              v-decorator="[
+              'businessScope'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="危险化学品道路运输证号"
+          >
+            <a-input
+              v-decorator="[
+              'dangerChemLicenceNumber'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+      <span slot="action" slot-scope="text, record">
+        <a href="javascript:;" @click="rowEdit(record)">编辑</a>
+        <action ref="action" @newTrailerSuccess="handleSubmit"/>
+      </span>
+      <template slot="footer" slot-scope="currentPageData">
+        <a-button type="primary" @click="newTrailver">添加资质</a-button>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.current"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+  </div>
+</template>
+
+<script>
+import action from './action/action'
+const columns = [{
+  title: '车牌号',
+  dataIndex: 'trailerPlateNumber',
+  scopedSlots: { customRender: 'name' }
+}, {
+  title: '经营范围',
+  dataIndex: 'businessScope'
+}, {
+  title: '危险化学品道路运输证号',
+  dataIndex: 'dangerChemLicenceNumber'
+}, {
+  title: '危险化学品道路运输证号有效期止',
+  dataIndex: 'dangerChemLicenceValidDate'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      form: this.$form.createForm(this),
+      columns,
+      data: [],
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        current: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  created () {
+    this.handleSubmit()
+  },
+
+  components: {
+    action
+  },
+
+  computed: {},
+
+  methods: {
+    /**
+     * 查询挂车信息
+     */
+    handleSubmit () {
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    handleTableChange () {
+      const pager = { ...this.pagination }
+      pager.pageNum = pagination.current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    /**
+     * 请求后台数据方法
+     * @param { Object } params 请求参数
+     */
+    fetch (params = {}) {
+      delete params.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+      this.loading = true
+      this.$api.qualification.getTrailerCriteria(params).then((res) => {
+        if (res.code === 200) {
+          const pagination = { ...this.pagination }
+          pagination.total = res.data.total
+          this.pagination = pagination
+          this.data = res.data.list
+        } else {
+          this.data = []
+          const pagination = { ...this.pagination }
+          pagination.total = 0
+          this.pagination = pagination
+        }
+        this.loading = false
+      })
+    },
+
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 编辑挂车基本信息
+     */
+    rowEdit (record) {
+      this.$refs.action.isEdit = true
+      this.$refs.action.visible = true
+      this.$refs.action.trailerId = record.trailerId
+      this.$refs.action.okText = '更新信息'
+      let {
+        trailerPlateNumber,
+        dangerChemLicenceNumber,
+        dangerChemLicenceValidDate,
+        dangerChemLicenceAttachment,
+        businessScope,
+        tankInspectionValidDate,
+        tankInspectionAttachment,
+        tankMaterial,
+        fillingMaterial
+      } = record
+      this.$nextTick(() => {
+        this.$refs.action.form.setFieldsValue({
+          trailerPlateNumber,
+          dangerChemLicenceNumber,
+          dangerChemLicenceValidDate: this.$moment(dangerChemLicenceValidDate),
+          dangerChemLicenceAttachment,
+          businessScope,
+          tankInspectionValidDate: this.$moment(tankInspectionValidDate),
+          tankInspectionAttachment,
+          tankMaterial,
+          fillingMaterial
+        })
+      })
+    },
+    /**
+     * 新增挂车基本信息
+     */
+    newTrailver () {
+      this.$refs.action.isEdit = false
+      this.$refs.action.visible = true
+      this.$refs.action.okText = '创建信息'
+      this.$nextTick(() => {
+        this.$refs.action.form.resetFields()
+      })
+    }
+  }
+}
+
+</script>
+<style scoped>
+</style>

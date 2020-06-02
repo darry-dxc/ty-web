@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><link rel=icon href=favicon.ico><title>天原集团危化品车辆管理系统</title><style type=text/css>body {
+        width: 100%;
+        height: 100%;
+      }
+      #loading{
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center
+      }
+      .loading{
+        width: 200px;
+        height: 200px;
+        display: flex;
+        display: -webkit-flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .ball_plus div{
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 2px;
+        border-radius: 50%;
+        background-color: #40a9ff;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+      }
+      @keyframes ball_plus {
+        0%{
+          transform: scale(1);
+          -webkit-transform: scale(1);
+          opacity: 1;
+        }
+        50%{
+          transform: scale(0.3);
+          -webkit-transform: scale(0.3);
+          opacity: 0.7;
+        }
+        100%{
+          transform: scale(1);
+          -webkit-transform: scale(1);
+          opacity: 1;
+        }
+  
+      }
+      .ball_plus div:nth-child(1){
+        -webkit-animation: ball_plus 1s linear infinite;
+        animation: ball_plus 1s linear infinite;
+      }
+      .ball_plus div:nth-child(2){
+        -webkit-animation: ball_plus 1s linear .2s infinite;
+        animation: ball_plus 1s linear .2s infinite;
+      }
+      .ball_plus div:nth-child(3){
+        -webkit-animation: ball_plus 1s linear .4s infinite;
+        animation: ball_plus 1s linear .4s infinite;
+      }</style><link href=css/admin.3d64e5b6.css rel=prefetch><link href=css/dataBackup.2595fe41.css rel=prefetch><link href=css/guard.5b512351.css rel=prefetch><link href=css/list.95c1d792.css rel=prefetch><link href=css/login.c89d6370.css rel=prefetch><link href=css/logs.b827daf8.css rel=prefetch><link href=css/qualificateUpdate.b0037d79.css rel=prefetch><link href=css/seniorAdmin.2eba1f7f.css rel=prefetch><link href=css/sysSetting.ebaf4c06.css rel=prefetch><link href=css/transpotArrange.8cfda478.css rel=prefetch><link href=css/user.88548ab4.css rel=prefetch><link href=js/admin.7b57d388.js rel=prefetch><link href=js/dataBackup.2cfce03a.js rel=prefetch><link href=js/guard.5c736e08.js rel=prefetch><link href=js/history.b1fa8333.js rel=prefetch><link href=js/list.5d9217a0.js rel=prefetch><link href=js/login.12bb7e62.js rel=prefetch><link href=js/logs.a54aa835.js rel=prefetch><link href=js/qualificateTrack.9ccea872.js rel=prefetch><link href=js/qualificateUpdate.f2457122.js rel=prefetch><link href=js/seniorAdmin.82aaaace.js rel=prefetch><link href=js/sysSetting.ff1dec74.js rel=prefetch><link href=js/transpotArrange.4e6de284.js rel=prefetch><link href=js/user.d2c54b9d.js rel=prefetch><link href=css/app.eca81a52.css rel=preload as=style><link href=css/chunk-vendors.ceae872e.css rel=preload as=style><link href=js/app.45c31bcf.js rel=preload as=script><link href=js/chunk-vendors.fb9d0a43.js rel=preload as=script><link href=css/chunk-vendors.ceae872e.css rel=stylesheet><link href=css/app.eca81a52.css rel=stylesheet></head><body><noscript><strong>We're sorry but ty-web doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=loading><div class=loading><div class=ball_plus><div></div><div></div><div></div></div></div></div><div id=app></div><script src=https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts-en.common.js></script><script src=js/chunk-vendors.fb9d0a43.js></script><script src=js/app.45c31bcf.js></script></body></html>

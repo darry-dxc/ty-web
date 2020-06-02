@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><link rel=icon href=favicon.ico><title>天原集团危化品车辆管理系统</title><style type=text/css>body {
+        width: 100%;
+        height: 100%;
+      }
+      #loading{
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        background-image: url(https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg);
+        background-repeat: no-repeat;
+        background-position: center 110px;
+        background-size: 100%;
+      }
+      .loading{
+        width: 200px;
+        height: 200px;
+        display: flex;
+        display: -webkit-flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .ball_plus div{
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 2px;
+        border-radius: 50%;
+        background-color: #ff7875;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+      }
+      @keyframes ball_plus {
+        0%{
+          transform: scale(1);
+          -webkit-transform: scale(1);
+          opacity: 1;
+        }
+        50%{
+          transform: scale(0.3);
+          -webkit-transform: scale(0.3);
+          opacity: 0.7;
+        }
+        100%{
+          transform: scale(1);
+          -webkit-transform: scale(1);
+          opacity: 1;
+        }
+  
+      }
+      .ball_plus div:nth-child(1){
+        -webkit-animation: ball_plus 1s linear infinite;
+        animation: ball_plus 1s linear infinite;
+      }
+      .ball_plus div:nth-child(2){
+        -webkit-animation: ball_plus 1s linear .2s infinite;
+        animation: ball_plus 1s linear .2s infinite;
+      }
+      .ball_plus div:nth-child(3){
+        -webkit-animation: ball_plus 1s linear .4s infinite;
+        animation: ball_plus 1s linear .4s infinite;
+      }</style><link href=css/admin.330d88b9.css rel=prefetch><link href=css/dataBackup.f0d076b8.css rel=prefetch><link href=css/guard.f5811444.css rel=prefetch><link href=css/history.f610520a.css rel=prefetch><link href=css/list.9d3ce7b0.css rel=prefetch><link href=css/login.883418a8.css rel=prefetch><link href=css/logs.5e19d210.css rel=prefetch><link href=css/qualificateTrack.60a91f61.css rel=prefetch><link href=css/qualificateUpdate.bccaf25e.css rel=prefetch><link href=css/seniorAdmin.5b5848c9.css rel=prefetch><link href=css/sysSetting.5295adaa.css rel=prefetch><link href=css/transpotArrange.4fd8333c.css rel=prefetch><link href=css/user.7f6e4df7.css rel=prefetch><link href=js/admin.a162016f.js rel=prefetch><link href=js/dataBackup.358ec3b9.js rel=prefetch><link href=js/guard.6ca45071.js rel=prefetch><link href=js/history.ea2f0e9b.js rel=prefetch><link href=js/list.94475bb5.js rel=prefetch><link href=js/login.d0ca8edb.js rel=prefetch><link href=js/logs.0c0aed9e.js rel=prefetch><link href=js/qualificateTrack.e5a91726.js rel=prefetch><link href=js/qualificateUpdate.e6f743d2.js rel=prefetch><link href=js/seniorAdmin.d7da5646.js rel=prefetch><link href=js/sysSetting.d0c50c03.js rel=prefetch><link href=js/transpotArrange.930766a3.js rel=prefetch><link href=js/user.d273960c.js rel=prefetch><link href=css/app.ab291586.css rel=preload as=style><link href=css/chunk-vendors.bd185789.css rel=preload as=style><link href=js/app.453edfbf.js rel=preload as=script><link href=js/chunk-vendors.ed6e30c2.js rel=preload as=script><link href=css/chunk-vendors.bd185789.css rel=stylesheet><link href=css/app.ab291586.css rel=stylesheet></head><body><noscript><strong>We're sorry but ty-web doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script src=https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts-en.common.js></script><script src=js/chunk-vendors.ed6e30c2.js></script><script src=js/app.453edfbf.js></script></body></html>

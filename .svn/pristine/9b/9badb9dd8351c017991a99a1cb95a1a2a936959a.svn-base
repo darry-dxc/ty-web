@@ -1,0 +1,320 @@
+<template>
+  <div>
+    <a-table
+      :rowKey="record => record.entryStaffId"
+      :columns="columns"
+      :dataSource="data"
+      :loading="loading"
+      :pagination="false"
+      @change="handleTableChange"
+      bordered
+    >
+      <template slot="name" slot-scope="text">
+        <a href="javascript:;" @click="onClick(text)">{{text}}</a>
+      </template>
+      <template slot="title">
+        <a-form
+          layout="inline"
+          :form="form"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="用户名"
+          >
+            <a-input
+              v-decorator="[
+                'entryStaffAccount'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="手机号"
+          >
+            <a-input
+              v-decorator="[
+                'entryStaffPhone'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="注册时间"
+          >
+            <a-range-picker
+              @change="onChange"
+              :placeholder="placeholder"
+              format="YYYY/MM/DD"
+              v-decorator="[
+                'registerTime'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+          <a-form-item>
+            <a-button @click="resetForm">重置</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+       <span slot="action" slot-scope="text, record">
+          <a>{{record.enabled === '0'?'停用':'启用'}}</a>
+          <a style="marginLeft:18px" @click="visible = true">编辑</a>
+       </span>
+       <template slot="footer" >
+        <a-button type="primary" @click="handleAdd" style="margin-right: 16px" disabled>添加成员</a-button>
+        <downloadExcel
+          :data="json_data"
+          :fields="json_fields"
+          name="信息录入员导入模板.xls"
+          style="width:auto; display:inline-block"
+        >
+          <a-tooltip placement="bottom" >
+            <template slot="title">
+                <span>信息录入员导入模板下载</span>
+            </template>
+              <a-button type="primary" style="margin-right: 8px"><a-icon type="copy" /></a-button>
+          </a-tooltip>
+        </downloadExcel>
+        <a-upload
+          name="file"
+          :multiple="false"
+          :action="action"
+          :headers="headers"
+          :fileList="fileList"
+          accept=".xls, .xlsx"
+          @change="handleChange"
+          @beforeUpload="beforeUpload"
+        >
+          <a-button type="primary">
+            <a-icon type="file-excel" /> 批量导入
+          </a-button>
+          <span class="tip">请先下载模板，只能上传excel文件，且不超过10M</span>
+        </a-upload>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.pageNum"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+    <a-modal
+      title="权限修改"
+      v-model="visible"
+      @ok="visible = false"
+      centered
+      okText="确认"
+      cancelText="取消"
+    >
+      <p>待完善...</p>
+    </a-modal>
+  </div>
+</template>
+
+<script>
+const columns = [{
+  title: '用户名',
+  dataIndex: 'entryStaffAccount',
+  scopedSlots: { customRender: 'entryStaffAccount' }
+}, {
+  title: '手机号',
+  dataIndex: 'entryStaffPhone'
+}, {
+  title: '注册时间',
+  dataIndex: 'registerTime'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      data: [],
+      columns,
+      form: this.$form.createForm(this),
+      placeholder: ['开始时间', '结束时间'],
+      canUse: true,
+      visible: false,
+      headers: {},
+      fileList: [],
+      action: '/api/loginRegister/import/entryStaffs',
+      json_fields: {
+        '账户': 'account',
+        '姓名': 'name',
+        '手机号': 'phone',
+        '邮箱': 'email',
+        '密码': 'password'
+      },
+      json_data: [
+        {
+          'account': '首字符英文、由英文字符以及数字组成，例：tianyuan123',
+          'name': '小明',
+          'phone': '13622231112',
+          'email': 'c123@qq.com',
+          'password': '123'
+		    }
+      ],
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        pageNum: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  created () {
+    // this.headers['Content-Type'] = 'multipart/form-data'
+    this.headers['access-token'] = sessionStorage.getItem('token')
+  },
+
+  components: {},
+
+  computed: {},
+
+  methods: {
+    onChange () {},
+    onClick (key) {
+      console.log(key)
+      this.$router.push({ path: `/transpotArrange/action?key=${key}&isSolved=false` })
+    },
+    handleAdd () {
+
+    },
+    handleTableChange () {
+
+    },
+    handleSubmit () {
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    fetch (params = {}) {
+      this.loading = true
+      delete params.pageSizeOptions
+      this.$api.auth.guardAuthInfo(params).then(
+        res => {
+          console.log(res)
+          if (res.code === 200) {
+            const pagination = { ...this.pagination }
+            pagination.total = res.data.total
+            this.pagination = pagination
+            this.data = res.data.list
+          }
+          this.loading = false
+        }
+      ).catch(e => {
+        this.loading = false
+        this.$message.error(e.data)
+      })
+    },
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    handleChange (e) {
+      this.fileList = e.fileList
+      console.log(e)
+      if (e.file.response) {
+        if (e.file.error) {
+          this.$message.error('服务器异常')
+          return
+        }
+        if (e.file.response.code === 200) {
+          let data = e.file.response.data
+          if (data.length === 0) {
+            const modal = this.$modal.success({
+              title: '账号添加成功！'
+            })
+          } else {
+            const modal = this.$modal.error({
+              title: '以下账号未能添加成功：',
+              content: (
+                <div style="max-height: 360px; overflow: auto; padding: 16px 16px 16px 0">
+                  {data.map((item) => {
+                    if (item.account !== null) {
+                      return <div class="alert">账号：<span style="color: red">{item.account}</span>，错误原因：{item.state}</div>
+                    } else {
+
+                    }
+                  })}
+                </div>
+              ),
+              width: '480px'
+            })
+          }
+          this.fileList = []
+        } else {
+          // 错误处理
+        }
+      }
+    },
+    resetForm () {
+
+    },
+    /**
+     * 上传文件之前的钩子
+     * @param { Object } file 上传的文件
+     */
+    beforeUpload (file) {
+      // return false
+    }
+  }
+}
+
+</script>
+<style scoped>
+  .tip {
+    font-size: 8px;
+    color: red;
+    margin-left: 8px
+  }
+  .alert {
+    background-color: #fff1f0;
+    font-size: 14px;
+    font-variant: tabular-nums;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.65);
+    box-sizing: border-box;
+    margin: 0;
+    margin-bottom: 0px;
+    padding: 0;
+    list-style: none;
+    position: relative;
+    padding: 8px 15px 8px 37px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+</style>

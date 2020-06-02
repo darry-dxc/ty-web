@@ -1,0 +1,32 @@
+import request from '../utils/request'
+
+const commonUrl = '/systemAdmin/user/'
+/**
+ * 信息录入员日志查询
+ * @param {Object} params 参照接口文档
+ */
+function reporterLogs (params) {
+  return request.post(`${commonUrl}staff/log`, params)
+}
+
+/**
+ * 管理员日志查询
+ * @param {Object} params 参照接口文档
+ */
+function adminLogs (params) {
+  return request.post(`${commonUrl}manager/log`, params)
+}
+
+/**
+ * 门卫日志查询
+ * @param {Object} params 参照接口文档
+ */
+function guardLogs (params) {
+  return request.post(`${commonUrl}doorkeeper/log`, params)
+}
+
+export default {
+  reporterLogs,
+  adminLogs,
+  guardLogs
+}

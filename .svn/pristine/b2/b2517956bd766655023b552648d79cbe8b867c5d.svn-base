@@ -1,0 +1,7 @@
+import qualification from './qualification'
+import login from './login'
+import arrange from './arrange'
+
+export default {
+  qualification, login, arrange
+}

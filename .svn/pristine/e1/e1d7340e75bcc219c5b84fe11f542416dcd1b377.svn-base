@@ -1,0 +1,249 @@
+<!--  -->
+<template>
+  <div>
+    <a-table
+      :columns="columns"
+      :dataSource="data"
+      bordered
+      :loading="loading"
+      :pagination="false"
+      @change="handleTableChange"
+      :rowKey="record => record.escortId"
+    >
+      <template slot="name" slot-scope="text">
+        <a href="javascript:;">{{text}}</a>
+      </template>
+      <template slot="title">
+        <a-form
+          layout="inline"
+          :form="form"
+          id="actionForm"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="押运员姓名"
+          >
+            <a-input
+              v-decorator="[
+                'escortName'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="押运员手机号码"
+          >
+            <a-input
+              v-decorator="[
+                'escortPhone'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="押运证编号"
+          >
+            <a-input
+              v-decorator="[
+                'escortLicenceNumber'
+              ]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+      <span slot="action" slot-scope="text, record">
+        <a href="javascript:;" @click="rowEdit(record)">编辑</a>
+      </span>
+      <template slot="footer">
+        <a-button type="primary" @click="newEscort">添加资质</a-button>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.current"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+    <action ref="action" @newEscortSuccess="handleSubmit" @updateDriverSuccess="handleSubmit"/>
+  </div>
+</template>
+
+<script>
+import action from './action/action'
+const columns = [{
+  title: '押运员姓名',
+  dataIndex: 'escortName',
+  scopedSlots: { customRender: 'name' }
+}, {
+  title: '手机号码',
+  dataIndex: 'escortPhone'
+}, {
+  title: '押运证编号',
+  dataIndex: 'escortLicenceNumber'
+}, {
+  title: '押运证有效期止',
+  dataIndex: 'escortLicenceValidDate'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      columns,
+      form: this.$form.createForm(this),
+      data: [],
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        current: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  components: {
+    action
+  },
+
+  created () {
+    this.handleSubmit()
+  },
+
+  computed: {},
+
+  methods: {
+    /**
+     * 提交表单
+     */
+    handleSubmit () {
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 表格数据变化
+     */
+    handleTableChange (pagination) {
+      const pager = { ...this.pagination }
+      pager.pageNum = pagination.current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 请求后台数据方法
+     * @param { Object } params 请求参数
+     */
+    fetch (params = {}) {
+      delete params.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+      this.loading = true
+      this.$api.qualification.getEscortByCriteria(params).then((res) => {
+        if (res.code === 200) {
+          const pagination = { ...this.pagination }
+          pagination.total = res.data.total
+          this.pagination = pagination
+          this.data = res.data.list
+        } else {
+          this.data = []
+          const pagination = { ...this.pagination }
+          pagination.total = 0
+          this.pagination = pagination
+        }
+        this.loading = false
+      })
+    },
+    /**
+     * 表格分页条数切换
+     */
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 当前页切换
+     */
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+    /**
+     * 编辑押运员资质
+     */
+    rowEdit (record) {
+      this.$refs.action.isEdit = true
+      this.$refs.action.visible = true
+      console.log(record)
+      this.$refs.action.escortId = record.escortId
+      this.$refs.action.okText = '更新资质'
+      let {
+        escortName,
+        escortPhone,
+        escortLicenceNumber,
+        escortLicenceValidDate,
+        escortLicenceAttachment
+      } = record
+      this.$refs.action.fileList = [{
+        uid: -1,
+        status: 'done',
+        name: escortLicenceAttachment
+      }]
+      this.$nextTick(() => {
+        this.$refs.action.form.setFieldsValue({
+          escortName,
+          escortPhone,
+          escortLicenceNumber,
+          escortLicenceValidDate: this.$moment(escortLicenceValidDate),
+          escortLicenceAttachment
+        })
+      })
+    },
+    /**
+     * 新增押运员资质
+     */
+    newEscort () {
+      this.$refs.action.isEdit = false
+      this.$refs.action.visible = true
+      this.$refs.action.okText = '创建资质'
+      this.$refs.action.fileList = []
+      this.$nextTick(() => {
+        this.$refs.action.form.resetFields()
+      })
+    }
+  }
+}
+
+</script>
+<style scoped>
+</style>

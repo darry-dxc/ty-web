@@ -1,0 +1,221 @@
+<template>
+  <div>
+    <div id="index_user_header">
+      <div id="index_user_header_left">
+        <a-avatar :size="72" icon="user" />
+        <span :style="{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginLeft: '24px' }">
+          <span id="index_user_header_left_wel">{{welcomeTime}}，{{nickName}}，欢迎登录天原集团危化品车辆管理系统</span>
+          <span id="index_user_header_left_ps">管理员</span>
+        </span>
+      </div>
+    </div>
+    <div id="index_user_content">
+      <a-row :gutter="6">
+        <a-col :span="12">
+          <a-card title="运输类型" hoverable>
+            <div ref="pie" style="width:100%;height:450px"></div>
+          </a-card>
+        </a-col>
+        <a-col :span="12">
+          <a-card title="车辆信息" hoverable>
+            <div>
+              <div ref="line" style="width:100%;height:450px"></div>
+            </div>
+          </a-card> 
+        </a-col>
+      </a-row>
+    </div>
+  </div>
+</template>
+
+<script>
+const lineChartOptions = {
+  tooltip: {
+    trigger: 'axis'
+  },
+  legend: {
+    data:['异常车次','正常车次','总车次']
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  toolbox: {
+    right: '20',
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: ['周一','周二','周三','周四','周五','周六','周日']
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      name:'异常车次',
+      type:'line',
+      stack: '总量',
+      data:[70, 70, 20, 15, 12, 30, 10]
+    },
+    {
+      name:'正常车次',
+      type:'line',
+      stack: '总量',
+      data:[150, 230, 200, 215, 228, 300, 410]
+    },
+    {
+      name:'总车次',
+      type:'line',
+      stack: '总量',
+      data:[220, 300, 220, 230, 240, 330, 420]
+    }
+  ]
+}
+const pieChartOptions = {
+  tooltip : {
+    trigger: 'item',
+    formatter: "{a} <br/>{b} : {c} ({d}%)"
+  },
+  legend: {
+    orient: 'vertical',
+    left: 'left',
+    data: ['类型1','类型2','类型3','类型4','其他']
+  },
+  toolbox: {
+    right: '20',
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  series : [
+    {
+      name: '访问来源',
+      type: 'pie',
+      radius : '55%',
+      center: ['50%', '60%'],
+      data:[
+        {value:335, name:'类型1'},
+        {value:310, name:'类型2'},
+        {value:234, name:'类型3'},
+        {value:135, name:'类型4'},
+        {value:1548, name:'其他'}
+      ],
+      itemStyle: {
+        emphasis: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: 'rgba(0, 0, 0, 0.5)'
+        }
+      }
+    }
+  ]
+}
+export default {
+  data () {
+    return {
+      chart: null,
+      lineChart: null,
+      nickName: '',
+      welcomeTime: '早上好',
+      screenWidth: document.body.clientWidth
+    };
+  },
+
+  components: {},
+
+  created(){
+    this.getTime();
+    let role = sessionStorage.getItem('role');
+    this.nickName = role
+  },
+
+  mounted(){
+    this.initChart();
+    this.initLineChart();
+    window.onresize = () => {
+      return (() => {
+        window.screenWidth = document.body.clientWidth
+        this.screenWidth = window.screenWidth
+      })()
+    }
+  },
+
+  computed: {},
+
+  methods: {
+    //生成饼图
+    initChart(){
+      this.chart = this.$echarts.init(this.$refs.pie)
+      this.chart.setOption(pieChartOptions)
+    },
+    //折线图
+    initLineChart(){
+      this.lineChart = this.$echarts.init(this.$refs.line);
+      this.lineChart.setOption(lineChartOptions)
+    },
+    getTime(){
+      let now = new Date();
+        let hour = now.getHours();
+        if(hour < 9){
+        this.welcomeTime = '早上好'
+        }else if(hour < 12){
+          this.welcomeTime = '上午好'
+        }else if(hour < 14){
+          this.welcomeTime = '中午好'
+        }else if(hour < 17){
+          this.welcomeTime = '下午好'
+        }else {
+          this.welcomeTime = '晚上好'
+        }
+    }
+  },
+  watch: {
+    screenWidth(val){
+      if(!this.timer){
+        this.screenWidth = val;
+        this.timer = true;
+        setTimeout(()=> {
+          this.chart.resize();
+          this.lineChart.resize();
+          this.timer = false;
+        },100)
+      }
+    }
+  }
+}
+
+</script>
+<style scoped>
+  #index_user_header {
+    height: 80px;
+    background: #fff
+  }
+  #index_user_header_left {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+  }
+  #index_user_header_left_wel{
+    margin-bottom: 12px;
+    color: rgba(0,0,0,.85);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 28px;
+  }
+  #index_user_header_left_ps{
+    color: rgba(0,0,0,.45);
+    line-height: 22px;
+  }
+  #index_user_content {
+    padding-top: 24px;
+    background: #fff;
+    margin-top: 14px;
+    border-top: 1px solid #e8e8e8
+  }
+</style>

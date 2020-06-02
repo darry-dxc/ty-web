@@ -1,0 +1,116 @@
+<!-- 登录页面 -->
+<template>
+  <div id="login_page">
+    <div>
+      <div style="textAlign:center;marginBottom: 32px">
+        <img :size="70" src="../../assets/logo.png"/>
+      </div>
+      <a-form
+        id="login_page_form"
+        :form="form"
+        @submit="handleSubmit"
+      >
+        <a-form-item
+            :label-col="labelCol"
+            :wrapper-col="wrapperCol"
+          >
+            <a-input
+             size="large"
+              placeholder="手机号码"
+            >
+              <a-icon
+              slot="prefix"
+              type="mobile"
+              style="color: rgba(0,0,0,.25)"
+            />
+            </a-input>
+          </a-form-item>
+          <a-form-item>
+            <a-row>
+              <a-col :span="12">
+                <a-input
+                  placeholder="请输入验证码"
+                  size="large"
+                >
+                </a-input>
+              </a-col>
+              <a-col :span="12" style="textAlign:right">
+                <a-button type="primary" size="large">获取验证码</a-button>
+              </a-col>
+            </a-row>
+          </a-form-item>
+          <a-form-item>
+            <a-input
+              placeholder="新密码"
+              size="large"
+            >
+            </a-input>
+          </a-form-item>
+          <a-form-item>
+            <a-input
+              placeholder="确认密码"
+              size="large"
+            >
+            </a-input>
+          </a-form-item>
+          <a-form-item>
+          <a-row type="flex" justify="space-between" align="middle">
+            <a-col :span="12">
+              <a-button type="primary" style="width:100%" size="large">更新密码</a-button>
+            </a-col>
+            <a-col :span="8" style="textAlign:right">
+              <a @click="$router.push({path:'/login'})">使用已有账户登录</a>
+            </a-col>
+          </a-row>
+        </a-form-item>
+      </a-form>
+    </div>
+    <div :style="{textAlign: 'center',margin: '48px 0 24px'}">
+      天原集团危化品车辆管理系统 ©2019 Created by CAE504
+    </div>
+  </div>
+</template>
+
+<script>
+
+export default {
+  beforeCreate () {
+    this.form = this.$form.createForm(this)
+  },
+  methods: {
+    handleSubmit (e) {
+      e.preventDefault()
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          console.log('Received values of form: ', values)
+        }
+      })
+    }
+  }
+}
+</script>
+<style scope>
+#login_page{
+  height: 100vh;
+  width: 100%;
+  background: #f0f2f5;
+  padding: 32px 0 24px;
+  background-image: url(https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg);
+  background-repeat: no-repeat;
+  background-position: center 110px;
+  background-size: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between
+}
+#login_page_form{
+  width: 388px;
+  margin: 0 auto;
+}
+#login_page_form .login-form-forgot {
+  float: right;
+}
+#login_page_form .login-form-button {
+  width: 100%;
+}
+</style>

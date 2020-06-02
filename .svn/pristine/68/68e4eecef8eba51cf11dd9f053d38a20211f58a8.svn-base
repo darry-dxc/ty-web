@@ -1,0 +1,194 @@
+<template>
+  <div>
+    <a-modal
+      title="押运员基本信息"
+      :visible="visible"
+      @ok="handleOk"
+      :confirmLoading="confirmLoading"
+      @cancel="handleCancel"
+      :width="640"
+      :okText="okText"
+      cancelText="取消"
+    >
+      <a-form
+        :form="form"
+        id="actionForm"
+      >
+        <a-form-item
+          label="押运员姓名"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-input
+            v-decorator="[
+              'escortName',
+              {rules: [{ required: true, message: '请输入押运员姓名信息!' }]}
+            ]"
+          />
+        </a-form-item>
+        <a-form-item
+          label="押运员手机号码"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-input 
+            v-decorator="[
+              'escortPhone',
+              {rules: [{ validator: validatePhone }]}
+            ]"
+          />
+        </a-form-item>
+        <a-form-item
+          label="押运证编号"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-input
+            v-decorator="[
+              'escortLicenceNumber',
+              {rules: [{ required: true, message: '请输入押运证编号!' }]}
+            ]"
+          />
+        </a-form-item>
+        <a-form-item
+          label="押运证有效期止"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-date-picker 
+            placeholder="选择日期"
+            style="width:100%"
+            v-decorator="[
+              'escortLicenceValidDate',
+              {rules: [{ required: true, message: '请选择押运证有效期止!' }]}
+            ]"
+          />
+        </a-form-item>
+        <a-form-item
+          label="押运证附件上传"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-upload 
+            name="file" 
+            :multiple="false"
+            :beforeUpload="beforeUpload"
+            :defaultFileList="fileList"
+            :headers="headers" 
+            @change="handleChange"
+            v-decorator="[
+              'escortLicenceAttachment',
+              {rules: [{ required: true, message: '请上传押运证附件!' }]}
+            ]"
+          >
+            <a-button>
+              <a-icon type="upload" /> 点击上传
+            </a-button>
+          </a-upload>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      escortId: '',
+      visible: false,
+      isEdit: false,
+      confirmLoading: false,
+      okText: '创建资质',
+      fileList: [],
+      form: this.$form.createForm(this),
+      headers: {},
+      labelCol: {
+        xs: { span: 24 },
+        sm: { span: 10 },
+      },
+      wrapperCol: {
+        xs: { span: 24 },
+        sm: { span: 10 },
+      }
+    };
+  },
+
+  components: {},
+
+  computed: {},
+
+  methods: {
+    handleOk(e) {
+      this.form.validateFields((err, values) => {
+        if(err) {
+          console.log('err')
+          return
+        }
+        this.confirmLoading = true;
+        const submitValues = {
+          ...values,
+          'escortLicenceValidDate': values['escortLicenceValidDate'].format('YYYY-MM-DD'),
+          'escortLicenceAttachment': 'file1'
+          // 'driverLicenceAttachment': values['driverLicenceAttachment'].file.name, //暂时用字符串代替
+          // 'dangerLicenceAttachment': values['dangerLicenceAttachment'].file.name
+        }
+        if(this.isEdit){
+          console.log(this.escortId)
+          this.$api.qualification.updateEscort(Object.assign({ escortId: this.escortId },submitValues)).then((res) => {
+            if(res.code === 200){
+              this.$message.success('成功更新押运员资质!')
+              this.$emit('updateDriverSuccess')
+              this.visible = false
+            }else {
+              this.$message.error(res.message)
+            }
+          })
+          this.confirmLoading = false
+        } else {
+          this.$api.qualification.newEscort(submitValues).then((res) => {
+            if(res.code === 200){
+              this.$message.success('成功添加押运资质!')
+              this.$emit('newEscortSuccess')
+              this.visible = false
+            }else {
+              this.$message.error(res.message)
+            }
+            this.confirmLoading = false
+          })
+        }
+      })
+    },
+    handleCancel(e) {
+      this.visible = false
+    },
+    handleChange(){
+
+    },
+    /**
+     * 文件上传前钩子
+     * @param file 上传的文件 
+     */
+    beforeUpload(file) {
+      this.fileList = [...this.fileList, file]
+      return false;
+    },
+    validatePhone(rule, value, callback){
+      const form = this.form
+      const reg = /^1[34578]\d{9}$/
+      console.log(value)
+      if(value && !reg.test(value)){
+        callback('请输入正确格式的手机号码!')
+      } else {
+        callback();
+      }
+    }
+  }
+}
+
+</script>
+<style scoped>
+  #actionForm .ant-form-item{
+    margin-bottom: 4px;
+  }
+</style>

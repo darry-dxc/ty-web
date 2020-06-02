@@ -1,0 +1,102 @@
+<!--  -->
+<template>
+  <div>
+    <a-table :columns="columns" :dataSource="data" bordered>
+      <template slot="carNo" slot-scope="text">
+        <a href="javascript:;" @click="onClick(text)">{{text}}</a>
+      </template>
+      <template slot="title" slot-scope="currentPageData">
+        <a-form
+          layout="inline"
+          :form="form"
+        >
+          <a-form-item
+            label="驾驶员姓名"
+          >
+            <a-input></a-input>
+          </a-form-item>
+          <a-form-item
+            label="车牌号"
+          >
+            <a-input></a-input>
+          </a-form-item>
+          <a-form-item
+            label="进厂日期"
+          >
+            <a-date-picker 
+              @change="onChange" 
+              placeholder="选择日期"
+            />
+          </a-form-item>
+          <a-form-item
+            label="出厂日期"
+          >
+            <a-date-picker 
+              @change="onChange" 
+              placeholder="选择日期"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search">查询</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+    </a-table>
+  </div>
+</template>
+
+<script>
+const columns = [{
+  title: '车牌号',
+  dataIndex: 'carNo',
+  scopedSlots: { customRender: 'carNo' },
+}, {
+  title: '进厂日期',
+  dataIndex: 'inTime',
+}, {
+  title: '出厂日期',
+  dataIndex: 'outTime',
+}];
+
+const data = [{
+  key: '1',
+  carNo: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  outTime: '2019-2-22 12:00:00'
+}, {
+  key: '2',
+  carNo: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  outTime: '2019-2-22 12:00:00'
+}, {
+  key: '3',
+  carNo: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  outTime: '2019-2-22 12:00:00'
+}];
+export default {
+  data () {
+    return {
+      columns,
+      data,
+      form: {}
+    };
+  },
+
+  components: {},
+
+  computed: {},
+
+  methods: {
+    onChange(){
+
+    },
+    onClick(key){
+      this.$router.push({path:`/transpotArrange/action?key=${key}&isSolved=true`})
+    }
+  }
+}
+
+</script>
+<style scoped>
+</style>

@@ -1,0 +1,94 @@
+import axios from 'axios'
+import { baseUrl, statusCode } from './config'
+import store from '../store'
+import { message } from 'ant-design-vue'
+
+/**
+ * 跳转至登录页
+ */
+const reLogin = () => {
+  this.$router.replace({
+    path: '/login',
+    query: {
+      redirect: this.$router.currentRoute.fullPath
+    }
+  })
+}
+
+/**
+ * 错误处理
+ * @param { number } status 状态码
+ * @param { string } other 其他
+ */
+const errorHandle = (status, message) => {
+  switch (status) {
+    case statusCode.tokenError:
+      message.error(message)
+      reLogin()
+      break
+    case statusCode.tokenExpire:
+      message.error(message)
+      reLogin()
+      break
+    case statusCode.parameterInvalid:
+      message.error(message)
+      break
+    default:
+      message.error(message)
+  }
+}
+
+/**
+ * 创建axios实例
+ * 设置请求超时 { timeout }
+ */
+const service = axios.create({
+  timeout: 3000,
+  baseURL: baseUrl
+})
+service.defaults.headers.common['Authorization'] = 'AUTH_TOKEN'
+service.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
+console.log(baseUrl)
+
+/**
+ * 请求拦截器
+ * @param { object } config 请求参数
+ */
+service.interceptors.request.use((config) => {
+  const token = store.state.token
+  token && (config.headers.Authorization = token)
+  return config
+}, function (error) {
+  return Promise.reject(error)
+})
+
+/**
+ * 响应拦截器
+ * @param { object } response 响应参数
+ */
+service.interceptors.response.use(response => {
+  if (response.status === status.responseSuccess) {
+    return Promise.resolve(response)
+  } else {
+    return Promise.reject(response)
+  }
+}, error => {
+  if (error) {
+    if (error.response) {
+      let httpError = {
+        hasError: true,
+        status: error.response.code,
+        statusText: error.response.message
+      }
+      this.$store.commit('on_http_error', httpError)
+      errorHandle(httpError.status, httpError.statusText)
+    } else {
+      message.error('请求超时！请重试', 3)
+    }
+    return Promise.reject(error)
+  } else {
+    message.error('网络异常')
+  }
+})
+
+export default service

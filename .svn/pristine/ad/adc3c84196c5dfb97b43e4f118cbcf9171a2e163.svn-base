@@ -1,0 +1,418 @@
+<!--  -->
+<template>
+  <div>
+    <a-table
+      :rowKey="record => record.trailerId"
+      :columns="columns"
+      :dataSource="data"
+      :pagination="false"
+      @change="handleTableChange"
+      bordered>
+      <template slot="name" slot-scope="text">
+        <span style="color:#1890ff">{{text}}</span>
+      </template>
+      <template slot="title" >
+        <a-form
+          layout="inline"
+          :form="form"
+          ref="form"
+          @submit="handleSubmit"
+        >
+          <a-form-item
+            label="车牌号"
+          >
+            <a-input
+              v-decorator="[
+              'trailerPlateNumber'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="经营范围"
+          >
+            <a-input
+              v-decorator="[
+              'businessScope'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item
+            label="危险化学品道路运输证号"
+          >
+            <a-input
+              v-decorator="[
+              'dangerChemLicenceNumber'
+            ]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search" html-type="submit">查询</a-button>
+          </a-form-item>
+          <a-form-item>
+            <a-button @click="resetForm">重置</a-button>
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" @click="completeQualificate">完善资质</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+      <span slot="action" slot-scope="text, record">
+        <a href="javascript:;" @click="rowEdit(record)">{{aText}}</a>
+      </span>
+      <template slot="footer">
+        <a-button type="primary" @click="newTrailver">添加资质</a-button>
+        &nbsp;
+        <a-tooltip placement="bottom" >
+          <template slot="title">
+              <span>挂车导入模板下载</span>
+          </template>
+            <a-button type="primary" style="margin-right: 8px" @click="downloadExcel"><a-icon type="copy" /></a-button>
+        </a-tooltip>
+        <a-upload
+          name="file"
+          :multiple="false"
+          :action="bulkUploadAction"
+          :headers="headers"
+          :fileList="fileList"
+          accept=".xls, .xlsx"
+          @change="bulkUpload"
+          @beforeUpload="beforeBulkUpload"
+        >
+          <a-button type="primary">
+            <a-icon type="file-excel" /> 批量导入
+          </a-button>
+          <span class="tip">请先下载模板，只能上传excel文件，且不超过10M</span>
+        </a-upload>
+      </template>
+    </a-table>
+    <a-pagination
+      :current="pagination.current"
+      :pageSize="pagination.pageSize"
+      :total="pagination.total"
+      :pageSizeOptions="pagination.pageSizeOptions"
+      :showTotal="total => `共 ${total} 条数据`"
+      showSizeChanger
+      showQuickJumper
+      @change="handlePageChange"
+      @showSizeChange="showSizeChange"
+      style="margin: 16px 0; float: right"
+    />
+    <action ref="action" @newTrailerSuccess="handleSubmit" @completeTrailerSuccess="completeQualificate"/>
+  </div>
+</template>
+
+<script>
+import action from './action/action'
+const columns = [{
+  title: '车牌号',
+  dataIndex: 'trailerPlateNumber',
+  scopedSlots: { customRender: 'name' }
+}, {
+  title: '经营范围',
+  dataIndex: 'businessScope'
+}, {
+  title: '危险化学品道路运输证号',
+  dataIndex: 'dangerChemLicenceNumber'
+}, {
+  title: '危险化学品道路运输证号有效期止',
+  dataIndex: 'dangerChemLicenceValidDate'
+}, {
+  title: '操作',
+  key: 'action',
+  scopedSlots: { customRender: 'action' }
+}]
+
+export default {
+  data () {
+    return {
+      form: this.$form.createForm(this),
+      columns,
+      data: [],
+      headers: {},
+      bulkUploadAction: '',
+      fileList: [],
+      aText: '编辑',
+      loading: false,
+      pageSizeOptions: ['5', '10', '15', '20'],
+      pagination: {
+        current: 1,
+        pageSize: 5,
+        total: 0,
+        pageSizeOptions: ['5', '10', '15', '20']
+      }
+    }
+  },
+
+  created () {
+    this.headers['access-token'] = sessionStorage.getItem('token')
+    if(process.env.NODE_ENV === 'production') {
+      this.bulkUploadAction = baseUrl + 'entrystaff/qualification/import/trailer'
+    } else {
+      this.bulkUploadAction = '/api/entrystaff/qualification/import/trailer'
+    }
+    this.handleSubmit()
+  },
+
+  components: {
+    action
+  },
+
+  computed: {},
+
+  methods: {
+    /**
+     * 查询挂车信息
+     */
+    handleSubmit (e) {
+      this.aText = '编辑'
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    handleTableChange () {
+      const pager = { ...this.pagination }
+      pager.pageNum = pagination.current
+      this.pagination = pager
+      this.form.validateFields((err, values) => {
+        if (!err) {
+          this.fetch(Object.assign(values, this.pagination))
+        }
+      })
+    },
+
+    /**
+     * 请求后台数据方法
+     * @param { Object } params 请求参数
+     */
+    fetch (params = {}) {
+      delete params.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+      this.loading = true
+      this.$api.qualification.getTrailerCriteria(params).then((res) => {
+        if (res.code === 200) {
+          const pagination = { ...this.pagination }
+          pagination.total = res.data.total
+          this.pagination = pagination
+          this.data = res.data.list
+        } else {
+          this.data = []
+          const pagination = { ...this.pagination }
+          pagination.total = 0
+          this.pagination = pagination
+        }
+        this.loading = false
+      })
+    },
+
+    showSizeChange (current, pageSize) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      pager.pageSize = pageSize
+      this.pagination = pager
+      if(this.aText==='完善'){
+          this.completeQualificate()
+        }else{
+          this.handleSubmit()
+        }
+    },
+
+    handlePageChange (current) {
+      const pager = { ...this.pagination }
+      pager.pageNum = current
+      pager.current = current
+      this.pagination = pager
+      if(this.aText==='完善'){
+          this.completeQualificate()
+        }else{
+          this.handleSubmit()
+        }
+    },
+    /**
+     * 编辑挂车基本信息
+     */
+    rowEdit (record) {
+      this.$refs.action.isEdit = true
+      this.$refs.action.visible = true
+      this.$refs.action.trailerId = record.trailerId
+      if(this.aText==='完善'){
+        this.$refs.action.isComplete = true
+        this.$refs.action.okText = '完善信息'
+      }else{
+        this.$refs.action.isComplete = false
+        this.$refs.action.okText = '更新信息'
+      }
+      let {
+        trailerPlateNumber,
+        dangerChemLicenceNumber,
+        dangerChemLicenceValidDate,
+        dangerChemLicenceAttachment,
+        businessScope,
+        tankInspectionValidDate,
+        tankInspectionAttachment,
+        tankMaterial,
+        fillingMaterial
+      } = record
+      if(dangerChemLicenceAttachment !== '') {
+        this.$refs.action.dangerChemLicenceFileList = [{
+          uid: -1,
+          status: 'done',
+          name: dangerChemLicenceAttachment
+        }]
+        this.$refs.action.dangerChemLicenceAttachmentUrl = dangerChemLicenceAttachment
+      } else {
+        this.$refs.action.dangerChemLicenceFileList = []
+      }
+      if(tankInspectionAttachment !== '') {
+        this.$refs.action.tankInspectionFileList = [{
+          uid: -2,
+          status: 'done',
+          name: tankInspectionAttachment
+        }]
+        this.$refs.action.tankInspectionAttachmentUrl = tankInspectionAttachment
+      } else {
+        this.$refs.action.tankInspectionFileList = []
+      }
+      this.$nextTick(() => {
+        this.$refs.action.form.setFieldsValue({
+          trailerPlateNumber,
+          dangerChemLicenceNumber,
+          dangerChemLicenceValidDate: this.$moment(dangerChemLicenceValidDate),
+          dangerChemLicenceAttachment,
+          businessScope,
+          tankInspectionValidDate: this.$moment(tankInspectionValidDate),
+          tankInspectionAttachment,
+          tankMaterial,
+          fillingMaterial
+        })
+      })
+    },
+    /**
+     * 新增挂车基本信息
+     */
+    newTrailver () {
+      this.$refs.action.isEdit = false
+      this.$refs.action.isComplete = false
+      this.$refs.action.visible = true
+      this.$refs.action.okText = '创建信息'
+      this.$refs.action.tankInspectionFileList = []
+      this.$refs.action.dangerChemLicenceFileList = []
+      this.$nextTick(() => {
+        this.$refs.action.form.resetFields()
+      })
+    },
+    resetForm () {
+      this.form.resetFields()
+      this.handleSubmit()
+    },
+    completeQualificate () {
+      this.aText = '完善'
+      this.form.validateFields((err, values) => {
+        values = Object.assign(values, this.pagination)
+        delete values.pageSizeOptions // 请求时移除参数中的数组对象，否则会抛出后台错误
+        this.loading = true
+        this.$api.qualification.getTrailerByCriteria2(values).then((res) => {
+          if (res.code === 200) {
+            const pagination = { ...this.pagination }
+            pagination.total = res.data.total
+            this.pagination = pagination
+            this.data = res.data.list
+          } else {
+            this.data = []
+            const pagination = { ...this.pagination }
+            pagination.total = 0
+            this.pagination = pagination
+          }
+          this.loading = false
+        })  
+      })
+    },
+    /**
+     * 上传文件之前的钩子
+     * @param { Object } file 上传的文件
+     */
+    beforeBulkUpload (file) {
+      // return false
+    },
+    bulkUpload (e) {
+      this.fileList = e.fileList
+      console.log(e)
+      if (e.file.response) {
+        if (e.file.error) {
+          this.$message.error('服务器异常')
+          return
+        }
+        if (e.file.response.code === 200) {
+          let data = e.file.response.data
+          if (data.length === 1) {
+            const modal = this.$modal.success({
+              title: '资历添加成功！',
+              content: (
+                  <div style="max-height: 360px; overflow: auto; padding: 16px 16px 16px 0">
+                {data.map((item) => {                   
+                  return <div class="alert">成功导入的资历数量：{item.info}</div>                                                            
+                  })}
+                </div>
+              ),
+              width: '480px'
+            })
+          } else {
+            const modal = this.$modal.error({
+                title: '以下资历未能添加成功：',
+                content: (
+                  <div style="max-height: 360px; overflow: auto; padding: 16px 16px 16px 0">
+                {data.map((item) => {
+                    if (item.info !== null) {
+                      if (item.state !== ''){
+                        return <div class="alert">资历：<span style="color: red">{item.info}</span>，错误原因：{item.state}</div>
+                      }else{
+                        return <div class="alert">成功导入的资历数量：{item.info}</div>
+                      }
+                    } else {
+                    }
+                  })}
+                </div>
+              ),
+              width: '480px'
+          })
+          }
+          if(this.aText==='完善'){
+            this.completeQualificate()
+          }else{
+            this.handleSubmit()
+          }
+          this.fileList = []
+        } else {
+          // 错误处理
+        }
+      }
+    },
+    downloadExcel() {
+      const data = [{
+        '车牌号': '',
+        '危险化学品道路运输证号码': '',
+        '危险化学品道路运输证有效期止': '',
+        '经营范围': '',
+        '罐体检查报告有效期止': '',
+        '罐体材质': '',
+        '充装材质': ''
+      }]
+      const fields = this.$XLSX.utils.json_to_sheet(data)
+      const wb = this.$XLSX.utils.book_new()
+      this.$XLSX.utils.book_append_sheet(wb, fields, 'sheet1')
+      let name = '挂车导入模板.xlsx'
+      this.$XLSX.writeFile(wb, name)
+    }
+  }
+}
+
+</script>
+<style scoped>
+  .tip {
+      font-size: 10px;
+      color: red;
+      margin-left: 8px
+    }
+</style>

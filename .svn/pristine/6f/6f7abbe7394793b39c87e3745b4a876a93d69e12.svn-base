@@ -1,0 +1,185 @@
+<!--  -->
+<template>
+  <div id="index_user_content">
+    <a-table :columns="columns" :dataSource="data" :scroll="{ x: 2400 }" bordered>
+      <template slot="carNo" slot-scope="text">
+        <a href="javascript:;" @click="onClick(text)">{{text}}</a>
+      </template>
+      <template slot="title" >
+        <a-form
+          layout="inline"
+          :form="form"
+        >
+          <a-form-item
+            label="驾驶员姓名"
+          >
+            <a-input></a-input>
+          </a-form-item>
+          <a-form-item
+            label="车牌号"
+          >
+            <a-input></a-input>
+          </a-form-item>
+          <a-form-item
+            label="所属公司"
+          >
+            <a-input></a-input>
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" icon="search">查询</a-button>
+          </a-form-item>
+        </a-form>
+      </template>
+    </a-table>
+  </div>
+</template>
+
+<script>
+const columns = [{
+  title: '车头车牌号',
+  dataIndex: 'headStockPlateNumber',
+  width: 120,
+  scopedSlots: { customRender: 'name' },
+  fixed: 'left'
+}, {
+  title: '手机号码',
+  width: 110,
+  dataIndex: 'driverPhone1',
+}, {
+  title: '匹配情况',
+  width: 110,
+  dataIndex: '2'
+}, {
+  title: '车辆状态',
+  width: 110,
+  dataIndex: '3'
+},{
+  title: '装货/送货',
+  width: 120,
+  dataIndex: '4'
+},{
+  title: '运输物料',
+  width: 110,
+  dataIndex: '5'
+}, {
+  title: '人员资质',
+  children: [{
+    title: '驾驶证',
+    width: 110,
+    dataIndex: '6'
+  }, {
+    title: '危险化学品运输资质',
+    width: 120,
+    dataIndex: '7'
+  }, {
+    title: '押运证',
+    width: 120,
+    dataIndex: '8'
+  }]
+}, {
+  title: '车辆车头资质',
+  children: [{
+    title: '车牌号',
+    width: 120,
+    dataIndex: '9'
+  }, {
+    title: '行驶证',
+    width: 120,
+    dataIndex: '10'
+  }, {
+    title: '使用性质',
+    width: 120,
+    dataIndex: '11'
+  }, {
+    title: '危险化学品道路运输证',
+    width: 120,
+    dataIndex: '12'
+  }, {
+    title: '经营范围',
+    width: 120,
+    dataIndex: '13'
+  }]
+}, {
+  title: '车辆挂车资质',
+  children: [{
+    title: '车牌号',
+    width: 120,
+    dataIndex: '14'
+  }, {
+    title: '危险化学品道路运输证',
+    width: 120,
+    dataIndex: '15'
+  }, {
+    title: '经营范围',
+    width: 120,
+    dataIndex: '16'
+  }, {
+    title: '罐体检测报告',
+    width: 120,
+    dataIndex: '17'
+  }]
+}, {
+  title: '创建时间',
+  width: 180,
+  dataIndex: 'createTime'
+}, {
+  title: '提交时间',
+  width: 180,
+  dataIndex: 'entryTime',
+}, {
+  title: '入厂时间',
+  width: 180,
+  dataIndex: 'entryTime1',
+}]
+
+const data = [{
+  key: '1',
+  driver: 'John Brown',
+  headStockPlateNumber: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  company: '海丰和锐'
+}, {
+  key: '2',
+  driver: 'Jim Green',
+  headStockPlateNumber: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  company: '海丰和锐'
+}, {
+  key: '3',
+  driver: 'Joe Black',
+  headStockPlateNumber: '川A112233',
+  inTime: '2019-2-22 12:00:00',
+  company: '海丰和锐'
+}]
+export default {
+  data () {
+    return {
+      columns,
+      data,
+      form: {}
+    }
+  },
+
+  components: {},
+
+  computed: {},
+
+  methods: {
+    onChange () {
+
+    },
+    onClick (key) {
+      this.$router.push({ path: `/transpotArrange/action?key=${key}&isSolved=true` })
+    }
+  }
+}
+
+</script>
+<style scoped>
+   #index_user_content {
+    padding-top: 24px;
+    background: #fff;
+    margin-top: 14px;
+    border-top: 1px solid #e8e8e8
+  }
+</style>
